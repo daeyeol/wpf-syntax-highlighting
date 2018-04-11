@@ -128,6 +128,7 @@ namespace SyntaxHighlighting
 
         public JsonSyntaxHighlightTextBox()
         {
+            Foreground = Brushes.White;
             Background = ConvertStringToSolidBrushColor("#FF1E1E1E");
         }
 
@@ -139,13 +140,15 @@ namespace SyntaxHighlighting
         {
             Document.Blocks.Clear();
 
-            if(string.IsNullOrWhiteSpace(Json))
+            if (string.IsNullOrWhiteSpace(Json))
             {
                 return;
             }
 
             FlowDocument flowDocument = new FlowDocument
             {
+                PageWidth = ActualWidth,
+                PageHeight = ActualHeight,
                 LineHeight = LineHeight
             };
 
@@ -158,15 +161,15 @@ namespace SyntaxHighlighting
 
             foreach (var line in lines)
             {
-                Paragraph paragraph = new Paragraph(new Run(line));      
+                Paragraph paragraph = new Paragraph(new Run(line));
                 flowDocument.Blocks.Add(paragraph);
             }
 
             var position = Document.ContentStart;
 
-            while(position != null)
+            while (position != null)
             {
-                if(position.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                if (position.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
                 {
                     var text = position.GetTextInRun(LogicalDirection.Forward);
                     var matches = Regex.Matches(text, pattern)
@@ -178,8 +181,6 @@ namespace SyntaxHighlighting
                         {
                             continue;
                         }
-
-                        Console.WriteLine(match.Value);
 
                         if (match.Value.Last() == ':')
                         {
@@ -197,7 +198,7 @@ namespace SyntaxHighlighting
                 position = position.GetNextContextPosition(LogicalDirection.Forward);
             }
 
-            foreach(var range in keyRanges)
+            foreach (var range in keyRanges)
             {
                 range.ApplyPropertyValue(TextElement.ForegroundProperty, KeyColor);
             }
