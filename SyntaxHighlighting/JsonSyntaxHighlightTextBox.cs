@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 
@@ -122,6 +123,28 @@ namespace SyntaxHighlighting
 
         #endregion
 
+        #region BoooleanColor
+
+        public static readonly DependencyProperty BoooleanColorProperty =
+            DependencyProperty.Register("BoooleanColor",
+                typeof(SolidColorBrush),
+                typeof(JsonSyntaxHighlightTextBox),
+                new PropertyMetadata(ConvertStringToSolidBrushColor("#FF569CCA"),
+                    new PropertyChangedCallback(ChangedBoooleanColorProperty)));
+
+        public static void ChangedBoooleanColorProperty(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            (obj as JsonSyntaxHighlightTextBox).Update();
+        }
+
+        public SolidColorBrush BoooleanColor
+        {
+            get { return (SolidColorBrush)GetValue(BoooleanColorProperty); }
+            set { SetValue(BoooleanColorProperty, value); }
+        }
+
+        #endregion
+
         #endregion
 
         #region Constructor
@@ -147,10 +170,14 @@ namespace SyntaxHighlighting
 
             FlowDocument flowDocument = new FlowDocument
             {
-                PageWidth = ActualWidth,
-                PageHeight = ActualHeight,
                 LineHeight = LineHeight
             };
+
+            Binding binding = new Binding();
+            binding.Source = this;
+            binding.Path = new PropertyPath("ActualWidth");
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            BindingOperations.SetBinding(flowDocument, FlowDocument.PageWidthProperty, binding);
 
             Document = flowDocument;
 
@@ -205,9 +232,13 @@ namespace SyntaxHighlighting
 
             foreach (var range in valueRanges)
             {
-                if (Regex.IsMatch(range.Text, "[0-9]"))
+                if (Regex.IsMatch(range.Text, "^[0-9]*$"))
                 {
                     range.ApplyPropertyValue(TextElement.ForegroundProperty, NumberColor);
+                }
+                else if (Regex.IsMatch(range.Text, "false|true"))
+                {
+                    range.ApplyPropertyValue(TextElement.ForegroundProperty, BoooleanColor);
                 }
                 else
                 {
